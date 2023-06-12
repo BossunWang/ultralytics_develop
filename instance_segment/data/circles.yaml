@@ -1,0 +1,5 @@
+train: /media/glory/46845c74-37f7-48d7-8b72-e63c83fa4f68/ultralytics_datasets/circles/train/images
+val: /media/glory/46845c74-37f7-48d7-8b72-e63c83fa4f68/ultralytics_datasets/circles/val/images
+test: /media/glory/46845c74-37f7-48d7-8b72-e63c83fa4f68/ultralytics_datasets/circles/test/images
+
+names: ['circle']
