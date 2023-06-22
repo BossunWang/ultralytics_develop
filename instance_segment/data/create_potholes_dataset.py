@@ -46,10 +46,34 @@ def write_data(data_root_path, subdir, phase, target_data_root_path, save_bbox):
             cv2.imshow("show_img", show_img)
             cv2.waitKey(1)
 
+        # copy image
         source_path = data_root_path / subdir / f'{subdir}_RAW.jpg'
         target_path = target_data_root_path / phase / 'images' / f'{subdir}.jpg'
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source_path, target_path)
+
+        # copy ground truth image
+        target_gt_path = target_data_root_path / phase / 'gt' / f'{subdir}.png'
+        target_gt_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_label_path, target_gt_path)
+
+        # copy ROI image
+        source_roi_path = data_root_path / subdir / f'{subdir}_LANE.png'
+        target_roi_path = target_data_root_path / phase / 'ROI' / f'{subdir}.png'
+        target_roi_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_roi_path, target_roi_path)
+
+        # generate ROI image
+        target_roi_mask_path = target_data_root_path / phase / 'ROI_mask' / f'{subdir}.png'
+        target_roi_mask_path.parent.mkdir(parents=True, exist_ok=True)
+
+        image = cv2.imread(f'{source_path}')
+        roi_image = cv2.imread(f'{source_roi_path}')
+        mask_image = cv2.bitwise_and(image, roi_image)
+
+        cv2.imshow("mask_image", mask_image)
+        cv2.waitKey(1)
+        cv2.imwrite(f'{target_roi_mask_path}', mask_image)
 
 
 def transfer_data(data_root_path, dataset_name, train_ratio, val_ratio, save_bbox):
@@ -71,20 +95,6 @@ def transfer_data(data_root_path, dataset_name, train_ratio, val_ratio, save_bbo
     for subdir in tqdm(data_subdir_list[train_num + val_num:]):
         phase = 'test'
         write_data(data_root_path, subdir, phase, target_data_root_path, save_bbox)
-
-
-def create_labels(image_path, label_path):
-    arr = np.asarray(Image.open(image_path))
-
-    # There may be a better way to do it, but this is what I have found so far
-    cords = list(features.shapes(arr, mask=(arr >0)))[0][0]['coordinates'][0]
-    label_line = '0 ' + ' '.join([f'{int(cord[0])/arr.shape[0]} {int(cord[1])/arr.shape[1]}' for cord in cords])
-
-    label_path.parent.mkdir( parents=True, exist_ok=True )
-    with label_path.open('w') as f:
-        f.write(label_line)
-
-    return label_line
 
 
 if __name__ == '__main__':
